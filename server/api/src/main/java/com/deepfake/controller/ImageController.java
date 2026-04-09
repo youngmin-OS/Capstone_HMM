@@ -1,11 +1,13 @@
 package com.deepfake.controller;
 
+import com.deepfake.dto.ImageResponse;
 import com.deepfake.dto.ImageUploadResponse;
 import com.deepfake.service.ImageService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/images")
@@ -14,11 +16,20 @@ public class ImageController {
 
     private final ImageService imageService;
 
+    // ⭐ userId 포함
     @PostMapping("/upload")
-    public ResponseEntity<ImageUploadResponse> uploadImage(
-            @RequestParam("file") MultipartFile file) {
+    public ImageUploadResponse upload(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam("userId") Long userId
+    ) {
+        return imageService.uploadImage(file, userId);
+    }
 
-        ImageUploadResponse response = imageService.uploadImage(file);
-        return ResponseEntity.ok(response);
+    // ⭐ 내 이미지 조회
+    @GetMapping("/my")
+    public List<ImageResponse> getMyImages(
+            @RequestParam("userId") Long userId
+    ) {
+        return imageService.getMyImages(userId);
     }
 }
