@@ -13,10 +13,11 @@ public class Image {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String fileName;
-    private String filePath;
+    private String fileName;   // 원본 이름
+    private String filePath;   // 저장된 이름
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
     private User user;
 
     public Image(String fileName, String filePath, User user) {
