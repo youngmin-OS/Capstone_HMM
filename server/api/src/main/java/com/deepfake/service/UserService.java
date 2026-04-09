@@ -3,6 +3,7 @@ package com.deepfake.service;
 import com.deepfake.domain.User;
 import com.deepfake.dto.LoginRequest;
 import com.deepfake.dto.UserSignupRequest;
+import com.deepfake.jwt.JwtUtil;
 import com.deepfake.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Service;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final JwtUtil jwtUtil;
 
     public User signup(UserSignupRequest request) {
 
@@ -29,10 +31,13 @@ public class UserService {
         return userRepository.save(user);
     }
 
-    public User login(LoginRequest request) {
+    // ⭐ 핵심: String 반환 (토큰)
+    public String login(LoginRequest request) {
 
-        return userRepository.findByEmail(request.getEmail())
+        User user = userRepository.findByEmail(request.getEmail())
                 .filter(u -> u.getPassword().equals(request.getPassword()))
                 .orElseThrow(() -> new RuntimeException("로그인 실패"));
+
+        return jwtUtil.createToken(user.getId());
     }
 }

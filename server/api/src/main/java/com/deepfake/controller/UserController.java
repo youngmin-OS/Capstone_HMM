@@ -1,6 +1,5 @@
 package com.deepfake.controller;
 
-import com.deepfake.domain.User;
 import com.deepfake.dto.LoginRequest;
 import com.deepfake.dto.UserSignupRequest;
 import com.deepfake.service.UserService;
@@ -15,12 +14,13 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping("/signup")
-    public User signup(@RequestBody UserSignupRequest request) {
+    public Object signup(@RequestBody UserSignupRequest request) {
         return userService.signup(request);
     }
 
+    // ⭐ 여기 중요 (String 반환)
     @PostMapping("/login")
-    public User login(@RequestBody LoginRequest request) {
+    public String login(@RequestBody LoginRequest request) {
         return userService.login(request);
     }
 }
