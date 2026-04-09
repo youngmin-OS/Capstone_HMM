@@ -1,71 +1,91 @@
 package com.deepfake.service;
 
 import com.deepfake.domain.Image;
+import com.deepfake.domain.User;
+import com.deepfake.dto.ImageResponse;
 import com.deepfake.dto.ImageUploadResponse;
 import com.deepfake.repository.ImageRepository;
+import com.deepfake.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class ImageService {
 
     private final ImageRepository imageRepository;
+    private final UserRepository userRepository;
 
-    public ImageUploadResponse uploadImage(MultipartFile file) {
+    public ImageUploadResponse uploadImage(MultipartFile file, Long userId) {
 
         try {
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new RuntimeException("유저 없음"));
+
             String fileName = saveFile(file);
 
-            Image image = new Image(file.getOriginalFilename(), fileName, null);
+            Image image = new Image(
+                    file.getOriginalFilename(),
+                    fileName,
+                    user
+            );
+
             imageRepository.save(image);
 
-            String resultUrl = "http://localhost:8080/uploads/" + fileName;
+            String url = "http://localhost:8080/uploads/" + fileName;
 
-            return new ImageUploadResponse(image.getId(), resultUrl);
+            return new ImageUploadResponse(image.getId(), url);
 
         } catch (IOException e) {
             throw new RuntimeException("파일 저장 실패");
         }
     }
 
+    // ⭐ 내 이미지 조회
+    public List<ImageResponse> getMyImages(Long userId) {
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("유저 없음"));
+
+        return imageRepository.findByUser(user)
+                .stream()
+                .map(img -> new ImageResponse(
+                        img.getId(),
+                        img.getFileName(),
+                        "http://localhost:8080/uploads/" + img.getFilePath()
+                ))
+                .collect(Collectors.toList());
+    }
+
     private String saveFile(MultipartFile file) throws IOException {
 
         String uploadDir = System.getProperty("user.dir") + "/uploads/";
-
         File dir = new File(uploadDir);
         if (!dir.exists()) dir.mkdirs();
 
         String originalFileName = file.getOriginalFilename();
-
-        // ⭐ 확장자 분리
-        String name = originalFileName;
-        String extension = "";
-
-        int dotIndex = originalFileName.lastIndexOf(".");
-        if (dotIndex != -1) {
-            name = originalFileName.substring(0, dotIndex);
-            extension = originalFileName.substring(dotIndex); // .jpg 포함
-        }
-
-        String fileName = name + extension;
-        File saveFile = new File(uploadDir + fileName);
+        File saveFile = new File(uploadDir + originalFileName);
 
         int count = 1;
 
-        // ⭐ 중복 처리 (확장자 유지)
         while (saveFile.exists()) {
-            fileName = name + "(" + count + ")" + extension;
-            saveFile = new File(uploadDir + fileName);
+            int dot = originalFileName.lastIndexOf(".");
+            String name = originalFileName.substring(0, dot);
+            String ext = originalFileName.substring(dot);
+
+            String newName = name + "(" + count + ")" + ext;
+            saveFile = new File(uploadDir + newName);
             count++;
         }
 
         file.transferTo(saveFile);
 
-        return fileName;
+        return saveFile.getName();
     }
 }
