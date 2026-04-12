@@ -1,3 +1,11 @@
+myenv/
+__pycache__/
+*.pyc
+.env
+.DS_Store
+.vscode/
+.idea/
+
 # Created by https://www.toptal.com/developers/gitignore/api/xcode,swift
 # Edit at https://www.toptal.com/developers/gitignore?templates=xcode,swift
 
@@ -139,3 +147,4 @@ out/
 ### VS Code ###
 .vscode/
 uploads/
+main
