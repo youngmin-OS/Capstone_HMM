@@ -83,7 +83,46 @@ struct SignupView: View {
     }
     
     func signup() {
-        print("회원가입 요청")
+        guard let url = URL(string: "http://172.16.8.189:8080/api/users/signup") else {
+            print("URL 오류")
+            return
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        
+        let body: [String: String] = [
+            "name": name,
+            "email": email,
+            "password": password
+        ]
+        
+        do {
+            request.httpBody = try JSONSerialization.data(withJSONObject: body)
+        } catch {
+            print("JSON 변환 실패")
+            return
+        }
+        
+        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            
+            if let error = error {
+                print("에러:", error.localizedDescription)
+                return
+            }
+            
+            if let response = response as? HTTPURLResponse {
+                print("상태 코드:", response.statusCode)
+            }
+            
+            if let data = data {
+                let result = String(data: data, encoding: .utf8)
+                print("응답:", result ?? "")
+            }
+            
+        }.resume()
     }
 }
 

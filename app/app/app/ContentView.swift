@@ -81,7 +81,7 @@
                     LoginView(showLogin: $showLogin, showSignup: $showSignup)
                         .transition(.move(edge: .bottom))
                 }
-                
+                    
                 if showSignup {
                     SignupView(showSignup: $showSignup, showLogin: $showLogin)
                         .transition(.move(edge: .bottom))
