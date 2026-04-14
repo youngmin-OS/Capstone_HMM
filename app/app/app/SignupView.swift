@@ -1,17 +1,13 @@
 import SwiftUI
 
 struct SignupView: View {
+    @Binding var showSignup: Bool
     @State private var name = ""
     @State private var email = ""
     @State private var password = ""
     
     var body: some View {
         ZStack {
-            // 배경
-            LinearGradient(colors: [Color.blue, Color.purple],
-                           startPoint: .topLeading,
-                           endPoint: .bottomTrailing)
-                .ignoresSafeArea()
             
             VStack {
                 Spacer()
@@ -149,6 +145,6 @@ struct CustomSecureField: View {
 
 struct SignupView_Previews: PreviewProvider {
     static var previews: some View {
-        SignupView()
+        SignupView(showSignup: .constant(true))
     }
 }
