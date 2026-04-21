@@ -1,6 +1,41 @@
 import SwiftUI
 
 struct ResultView: View {
+    @State private var showShare = false
+    @State private var shareImage: UIImage?
+    @State private var showSaveAlert = false
+    
+    func loadImageFromURL(_ urlString: String) {
+        guard let url = URL(string: urlString) else { return }
+        
+        URLSession.shared.dataTask(with: url) { data, _, _ in
+            if let data = data, let image = UIImage(data: data) {
+                DispatchQueue.main.async {
+                    self.shareImage = image
+                    self.showShare = true
+                }
+            }
+        }.resume()
+    }
+    
+    func saveImageToPhotos(_ image: UIImage) {
+        UIImageWriteToSavedPhotosAlbum(image, nil, nil, nil)
+    }
+    
+    func loadAndSaveImage() {
+        guard let url = URL(string: result.processedUrl) else { return }
+        
+        URLSession.shared.dataTask(with: url) { data, _, _ in
+            if let data = data, let image = UIImage(data: data) {
+                DispatchQueue.main.async {
+                    saveImageToPhotos(image)
+                    print("저장 완료")
+                    showSaveAlert = true
+                }
+            }
+        }.resume()
+    }
+    
     let result: ImageResponse
     
     var riskText: String {
@@ -18,7 +53,6 @@ struct ResultView: View {
                 .font(.headline)
                 .padding(.top, 10)
             
-            // 🔥 위험도 카드
             VStack(alignment: .leading, spacing: 10) {
                 
                 HStack {
@@ -41,7 +75,6 @@ struct ResultView: View {
                     }
                 }
                 
-                // 🔥 프로그레스 바
                 ProgressView(value: result.riskScore)
                     .tint(riskColor)
                 
@@ -54,7 +87,6 @@ struct ResultView: View {
             .cornerRadius(16)
             .padding(.horizontal)
             
-            // 🔥 처리된 이미지
             AsyncImage(url: URL(string: result.processedUrl)) { image in
                 image
                     .resizable()
@@ -65,7 +97,6 @@ struct ResultView: View {
             }
             .padding(.horizontal)
             
-            // 🔥 새 이미지 버튼
             Button {
                 // 뒤로가기
             } label: {
@@ -80,14 +111,12 @@ struct ResultView: View {
             }
             .padding(.horizontal)
             
-            // 🔥 원본 vs 비교
             VStack(alignment: .leading, spacing: 10) {
                 Text("원본과 비교")
                     .font(.headline)
                 
                 HStack(spacing: 10) {
                     
-                    // 원본
                     VStack {
                         Text("원본")
                             .font(.caption)
@@ -102,7 +131,6 @@ struct ResultView: View {
                         .cornerRadius(10)
                     }
                     
-                    // 처리
                     VStack {
                         Text("효과 적용")
                             .font(.caption)
@@ -125,11 +153,10 @@ struct ResultView: View {
             
             Spacer()
             
-            // 🔥 하단 버튼
             HStack(spacing: 12) {
                 
                 Button {
-                    print("공유")
+                    loadImageFromURL(result.processedUrl)
                 } label: {
                     HStack {
                         Image(systemName: "square.and.arrow.up")
@@ -143,7 +170,7 @@ struct ResultView: View {
                 }
                 
                 Button {
-                    print("저장")
+                    loadAndSaveImage()
                 } label: {
                     HStack {
                         Image(systemName: "arrow.down")
@@ -154,6 +181,11 @@ struct ResultView: View {
                     .background(Color.black)
                     .foregroundColor(.white)
                     .cornerRadius(12)
+                }
+            }
+            .sheet(isPresented: $showShare) {
+                if let image = shareImage {
+                    ShareSheet(items: [image])
                 }
             }
             .padding(.horizontal)
