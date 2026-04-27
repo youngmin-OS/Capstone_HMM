@@ -8,6 +8,9 @@ struct SignupView: View {
     @State private var email = ""
     @State private var password = ""
     
+    @State private var message = ""
+    @State private var showAlert = false
+    
     var body: some View {
         VStack {
             Spacer()
@@ -79,11 +82,14 @@ struct SignupView: View {
             .frame(height: 500)
             .background(Color.white)
             .cornerRadius(25)
+            .alert(isPresented: $showAlert) {
+                Alert(title: Text(message))
+            }
         }
     }
     
     func signup() {
-        guard let url = URL(string: "http://172.16.8.189:8080/api/users/signup") else {
+        guard let url = URL(string: "http://127.0.0.1:8080/api/users/signup") else {
             print("URL 오류")
             return
         }
@@ -108,18 +114,22 @@ struct SignupView: View {
         
         URLSession.shared.dataTask(with: request) { data, response, error in
             
-            if let error = error {
-                print("에러:", error.localizedDescription)
-                return
-            }
-            
-            if let response = response as? HTTPURLResponse {
-                print("상태 코드:", response.statusCode)
-            }
-            
-            if let data = data {
-                let result = String(data: data, encoding: .utf8)
-                print("응답:", result ?? "")
+            DispatchQueue.main.async {
+                
+                if let error = error {
+                    message = "회원가입 실패: \(error.localizedDescription)"
+                    showAlert = true
+                    return
+                }
+                
+                if let response = response as? HTTPURLResponse {
+                    if response.statusCode == 200 || response.statusCode == 201 {
+                        message = "회원가입 성공!"
+                    } else {
+                        message = "회원가입 실패 (코드: \(response.statusCode))"
+                    }
+                    showAlert = true
+                }
             }
             
         }.resume()
