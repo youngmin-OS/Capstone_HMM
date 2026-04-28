@@ -2,9 +2,7 @@ import UIKit
 
 struct ImageResponse: Codable {
     let imageId: Int
-    let originalUrl: String
-    let processedUrl: String
-    let riskScore: Double
+    let resultUrl: String
 }
 
 func resizeImage(image: UIImage, maxWidth: CGFloat) -> UIImage {
@@ -19,10 +17,17 @@ func resizeImage(image: UIImage, maxWidth: CGFloat) -> UIImage {
 }
 
 func uploadImage(image: UIImage, completion: @escaping (ImageResponse?) -> Void) {
-    guard let url = URL(string: "http://localhost:8080/api/images/upload") else { return }
+    guard let url = URL(string: "http://172.16.8.189:8080/api/images/upload") else { return }
     
     var request = URLRequest(url: url)
     request.httpMethod = "POST"
+    
+    if let token = UserDefaults.standard.string(forKey: "jwt_token") {
+            print("🔑 토큰 있음: \(token)")
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        } else {
+            print("❌ 토큰 없음 - 로그인 안 된 상태")
+        }
     
     let boundary = UUID().uuidString
     request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")

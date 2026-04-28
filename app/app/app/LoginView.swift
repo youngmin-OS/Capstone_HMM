@@ -112,9 +112,9 @@ struct LoginView: View {
             
             DispatchQueue.main.async {
                 if httpResponse.statusCode == 200 {
-                    message = "로그인 성공 🎉"
-                    showAlert = true
-                    
+                    if let data = data, let token = String(data: data, encoding: .utf8) {
+                        UserDefaults.standard.set(token, forKey: "jwt_token")
+                    }
                     isLoggedIn = true
                     showLogin = false
                 } else {

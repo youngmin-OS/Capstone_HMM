@@ -14,11 +14,7 @@ struct MainView: View {
         NavigationStack {
             ZStack {
                 NavigationLink("", isActive: $goLoading) {
-                    if let image = selectedImage {
-                        ResultLoadingView(image: image)
-                    } else {
-                        EmptyView()
-                    }
+                    ResultLoadingView(image: selectedImage ?? UIImage())
                 }
                 .opacity(0)
 
@@ -131,6 +127,9 @@ struct MainView: View {
                        let uiImage = UIImage(data: data) {
                         await MainActor.run {
                             selectedImage = uiImage
+                        }
+                        try? await Task.sleep(nanoseconds: 100_000_000) // 0.1초 대기
+                        await MainActor.run {
                             goLoading = true
                         }
                     }
@@ -138,6 +137,7 @@ struct MainView: View {
             }
             .sheet(isPresented: $showHistory) {
                 HistoryView()
+                    .environmentObject(HistoryStore.shared) 
             }
         }
     }
