@@ -59,7 +59,6 @@ struct MainView: View {
                     Spacer()
 
                     if isLoggedIn {
-                        // 로그인 완료 시: 이력관리 버튼
                         Button {
                             showHistory = true
                         } label: {
@@ -121,6 +120,35 @@ struct MainView: View {
                         .transition(.move(edge: .bottom))
                 }
             }
+            .onAppear {
+                if let token = UserDefaults.standard.string(forKey: "jwt_token") {
+                    let parts = token.split(separator: ".")
+                    if parts.count == 3 {
+                        var base64 = String(parts[1])
+                        let remainder = base64.count % 4
+                        if remainder > 0 { base64 += String(repeating: "=", count: 4 - remainder) }
+                        
+                        if let data = Data(base64Encoded: base64),
+                           let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                           let exp = json["exp"] as? TimeInterval,
+                           Date().timeIntervalSince1970 < exp {
+                            isLoggedIn = true
+                        } else {
+                            // ✅ 만료된 토큰 확실히 삭제
+                            UserDefaults.standard.removeObject(forKey: "jwt_token")
+                            UserDefaults.standard.synchronize() // 즉시 반영
+                            isLoggedIn = false
+                        }
+                    } else {
+                        // ✅ 잘못된 형식의 토큰도 삭제
+                        UserDefaults.standard.removeObject(forKey: "jwt_token")
+                        UserDefaults.standard.synchronize()
+                        isLoggedIn = false
+                    }
+                } else {
+                    isLoggedIn = false
+                }
+            }
             .onChange(of: selectedItem) { newItem in
                 Task {
                     if let data = try? await newItem?.loadTransferable(type: Data.self),
@@ -128,7 +156,7 @@ struct MainView: View {
                         await MainActor.run {
                             selectedImage = uiImage
                         }
-                        try? await Task.sleep(nanoseconds: 100_000_000) // 0.1초 대기
+                        try? await Task.sleep(nanoseconds: 100_000_000)
                         await MainActor.run {
                             goLoading = true
                         }
@@ -137,7 +165,7 @@ struct MainView: View {
             }
             .sheet(isPresented: $showHistory) {
                 HistoryView()
-                    .environmentObject(HistoryStore.shared) 
+                    .environmentObject(HistoryStore.shared)
             }
         }
     }
@@ -164,7 +192,6 @@ struct FeatureCard: View {
             VStack(alignment: .leading, spacing: 5) {
                 Text(title)
                     .font(.headline)
-
                 Text(description)
                     .font(.subheadline)
                     .foregroundColor(.gray)
