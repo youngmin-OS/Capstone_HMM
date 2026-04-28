@@ -51,6 +51,7 @@ struct ResultLoadingView: View {
                     print("✅ 성공: \(res)")
                     self.result = res
                     self.goNext = true  // ✅ result 설정 후 이동
+                    
                 } else {
                     print("❌ 실패: res가 nil")
                     self.isError = true
