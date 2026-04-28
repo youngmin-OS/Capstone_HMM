@@ -5,22 +5,25 @@ import com.deepfake.dto.LoginRequest;
 import com.deepfake.dto.UserSignupRequest;
 import com.deepfake.jwt.JwtUtil;
 import com.deepfake.repository.UserRepository;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
-@RequiredArgsConstructor
 public class UserService {
 
     private final UserRepository userRepository;
     private final JwtUtil jwtUtil;
 
-    public User signup(UserSignupRequest request) {
+    @Autowired
+    public UserService(UserRepository userRepository, JwtUtil jwtUtil) {
+        this.userRepository = userRepository;
+        this.jwtUtil = jwtUtil;
+    }
 
-        userRepository.findByEmail(request.getEmail())
-                .ifPresent(u -> {
-                    throw new RuntimeException("이미 존재하는 이메일");
-                });
+    public void signup(UserSignupRequest request) {
+        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
+            throw new RuntimeException("이미 존재하는 이메일");
+        }
 
         User user = new User(
                 request.getEmail(),
@@ -28,15 +31,16 @@ public class UserService {
                 request.getName()
         );
 
-        return userRepository.save(user);
+        userRepository.save(user);
     }
 
-    // ⭐ 핵심: String 반환 (토큰)
     public String login(LoginRequest request) {
-
         User user = userRepository.findByEmail(request.getEmail())
-                .filter(u -> u.getPassword().equals(request.getPassword()))
-                .orElseThrow(() -> new RuntimeException("로그인 실패"));
+                .orElseThrow(() -> new RuntimeException("유저 없음"));
+
+        if (!user.getPassword().equals(request.getPassword())) {
+            throw new RuntimeException("비밀번호 불일치");
+        }
 
         return jwtUtil.createToken(user.getId());
     }

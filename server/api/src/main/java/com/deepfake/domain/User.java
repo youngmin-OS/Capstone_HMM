@@ -1,13 +1,9 @@
 package com.deepfake.domain;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "users") // ⭐ 핵심: user → users 변경
-@Getter
-@NoArgsConstructor
+@Table(name = "users")
 public class User {
 
     @Id
@@ -18,10 +14,16 @@ public class User {
     private String password;
     private String name;
 
-    // 생성자 (필요하면 사용)
+    public User() {}
+
     public User(String email, String password, String name) {
         this.email = email;
         this.password = password;
         this.name = name;
     }
+
+    public Long getId() { return id; }
+    public String getEmail() { return email; }
+    public String getPassword() { return password; }
+    public String getName() { return name; }
 }

@@ -6,7 +6,7 @@ import com.deepfake.dto.ImageResponse;
 import com.deepfake.dto.ImageUploadResponse;
 import com.deepfake.repository.ImageRepository;
 import com.deepfake.repository.UserRepository;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -16,17 +16,25 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
 public class ImageService {
 
     private final ImageRepository imageRepository;
     private final UserRepository userRepository;
 
+    @Autowired
+    public ImageService(ImageRepository imageRepository, UserRepository userRepository) {
+        this.imageRepository = imageRepository;
+        this.userRepository = userRepository;
+    }
+
     public ImageUploadResponse uploadImage(MultipartFile file, Long userId) {
 
         try {
-            User user = userRepository.findById(userId)
-                    .orElseThrow(() -> new RuntimeException("유저 없음"));
+            User user = null;
+            if (userId != null) {
+                user = userRepository.findById(userId)
+                        .orElseThrow(() -> new RuntimeException("유저 없음"));
+            }
 
             String fileName = saveFile(file);
 
@@ -47,7 +55,6 @@ public class ImageService {
         }
     }
 
-    // ⭐ 내 이미지 조회
     public List<ImageResponse> getMyImages(Long userId) {
 
         User user = userRepository.findById(userId)

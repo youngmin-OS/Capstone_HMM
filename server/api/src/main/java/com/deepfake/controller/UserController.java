@@ -3,24 +3,30 @@ package com.deepfake.controller;
 import com.deepfake.dto.LoginRequest;
 import com.deepfake.dto.UserSignupRequest;
 import com.deepfake.service.UserService;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/users")
-@RequiredArgsConstructor
 public class UserController {
 
     private final UserService userService;
 
-    @PostMapping("/signup")
-    public Object signup(@RequestBody UserSignupRequest request) {
-        return userService.signup(request);
+    @Autowired
+    public UserController(UserService userService) {
+        this.userService = userService;
     }
 
-    // ⭐ 여기 중요 (String 반환)
+    @PostMapping("/signup")
+    public ResponseEntity<String> signup(@RequestBody UserSignupRequest request) {
+        userService.signup(request);
+        return ResponseEntity.ok("회원가입 성공");
+    }
+
     @PostMapping("/login")
-    public String login(@RequestBody LoginRequest request) {
-        return userService.login(request);
+    public ResponseEntity<String> login(@RequestBody LoginRequest request) {
+        String token = userService.login(request);
+        return ResponseEntity.ok(token);
     }
 }
