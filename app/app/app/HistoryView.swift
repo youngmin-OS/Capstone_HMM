@@ -26,6 +26,7 @@ class HistoryStore: ObservableObject {
 
     private init() { load() }
 
+    // 로그인/로그아웃 시 해당 유저의 이력으로 교체
     func loadForUser(email: String?) {
         let key = email.map { "deepfake_history_\($0)" } ?? "deepfake_history_guest"
         DispatchQueue.main.async {
@@ -75,8 +76,10 @@ class HistoryStore: ObservableObject {
 struct HistoryView: View {
     @EnvironmentObject private var store: HistoryStore
     @Environment(\.dismiss) private var dismiss
+    @Binding var isLoggedIn: Bool
 
     @State private var selectedItem: HistoryItem? = nil
+    @State private var showLogoutAlert = false
 
     var body: some View {
         NavigationStack {
@@ -102,6 +105,18 @@ struct HistoryView: View {
             .sheet(item: $selectedItem) { item in
                 HistoryDetailView(item: item)
                     .environmentObject(store)
+            }
+            .alert("로그아웃", isPresented: $showLogoutAlert) {
+                Button("로그아웃", role: .destructive) {
+                    UserDefaults.standard.removeObject(forKey: "jwt_token")
+                    UserDefaults.standard.removeObject(forKey: "current_user_email")
+                    store.loadForUser(email: nil)
+                    isLoggedIn = false
+                    dismiss()
+                }
+                Button("취소", role: .cancel) {}
+            } message: {
+                Text("로그아웃 하시겠습니까?")
             }
         }
     }
@@ -132,9 +147,11 @@ struct HistoryView: View {
 
                 Spacer()
 
-                Image(systemName: "xmark.circle.fill")
-                    .font(.title2)
-                    .foregroundColor(.clear)
+                Button { showLogoutAlert = true } label: {
+                    Image(systemName: "rectangle.portrait.and.arrow.right")
+                        .font(.title2)
+                        .foregroundColor(.white.opacity(0.8))
+                }
             }
             .padding(.horizontal, 20)
             .padding(.vertical, 16)
@@ -279,6 +296,6 @@ struct HistoryDetailView: View {
 
 // MARK: - Preview
 #Preview {
-    HistoryView()
+    HistoryView(isLoggedIn: .constant(true))
         .environmentObject(HistoryStore.shared)
 }
