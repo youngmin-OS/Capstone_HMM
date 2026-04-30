@@ -115,6 +115,8 @@ struct LoginView: View {
                     if let data = data, let token = String(data: data, encoding: .utf8) {
                         UserDefaults.standard.set(token, forKey: "jwt_token")
                     }
+                    UserDefaults.standard.set(email, forKey: "current_user_email")
+                    HistoryStore.shared.loadForUser(email: email)
                     isLoggedIn = true
                     showLogin = false
                 } else {

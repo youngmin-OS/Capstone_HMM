@@ -19,9 +19,24 @@ class HistoryStore: ObservableObject {
 
     @Published var items: [HistoryItem] = []
 
-    private let saveKey = "deepfake_history"
+    private var saveKey: String {
+        let email = UserDefaults.standard.string(forKey: "current_user_email") ?? "guest"
+        return "deepfake_history_\(email)"
+    }
 
     private init() { load() }
+
+    func loadForUser(email: String?) {
+        let key = email.map { "deepfake_history_\($0)" } ?? "deepfake_history_guest"
+        DispatchQueue.main.async {
+            if let data = UserDefaults.standard.data(forKey: key),
+               let decoded = try? JSONDecoder().decode([HistoryItem].self, from: data) {
+                self.items = decoded
+            } else {
+                self.items = []
+            }
+        }
+    }
 
     func add(processed: UIImage) {
         guard let procData = processed.jpegData(compressionQuality: 0.8) else { return }
@@ -29,9 +44,10 @@ class HistoryStore: ObservableObject {
         DispatchQueue.main.async {
             self.items.insert(item, at: 0)
             let snapshot = self.items
+            let key = self.saveKey
             DispatchQueue.global(qos: .background).async {
                 if let encoded = try? JSONEncoder().encode(snapshot) {
-                    UserDefaults.standard.set(encoded, forKey: self.saveKey)
+                    UserDefaults.standard.set(encoded, forKey: key)
                 }
             }
         }
@@ -39,9 +55,10 @@ class HistoryStore: ObservableObject {
 
     private func save() {
         let snapshot = items
+        let key = saveKey
         DispatchQueue.global(qos: .background).async {
             if let encoded = try? JSONEncoder().encode(snapshot) {
-                UserDefaults.standard.set(encoded, forKey: self.saveKey)
+                UserDefaults.standard.set(encoded, forKey: key)
             }
         }
     }

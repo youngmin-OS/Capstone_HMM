@@ -133,14 +133,14 @@ struct MainView: View {
                            let exp = json["exp"] as? TimeInterval,
                            Date().timeIntervalSince1970 < exp {
                             isLoggedIn = true
+                            let email = UserDefaults.standard.string(forKey: "current_user_email")
+                            HistoryStore.shared.loadForUser(email: email)
                         } else {
-                            // ✅ 만료된 토큰 확실히 삭제
                             UserDefaults.standard.removeObject(forKey: "jwt_token")
                             UserDefaults.standard.synchronize() // 즉시 반영
                             isLoggedIn = false
                         }
                     } else {
-                        // ✅ 잘못된 형식의 토큰도 삭제
                         UserDefaults.standard.removeObject(forKey: "jwt_token")
                         UserDefaults.standard.synchronize()
                         isLoggedIn = false
