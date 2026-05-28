@@ -8,7 +8,7 @@ struct RiskResultView: View {
     let onApplyFilter: () -> Void
     let onDismiss: () -> Void
 
-    var scorePercent: Double { analyzeResult.risk.score }
+    var scorePercent: Double { Double(analyzeResult.overallRisk) / 100.0 }
 
     var gaugeColor: Color {
         if scorePercent >= 0.7 { return .red }
@@ -88,7 +88,7 @@ struct RiskResultView: View {
                         Text(infoMessage)
                     }
 
-                    if analyzeResult.faceCount == 0 {
+                    if analyzeResult.overallRisk == 0 {
                         Text("얼굴이 감지되지 않았습니다")
                             .font(.subheadline)
                             .foregroundColor(.gray)
@@ -130,14 +130,11 @@ struct RiskResultView: View {
     RiskResultView(
         image: UIImage(systemName: "person.fill")!,
         analyzeResult: AnalyzeResponse(
-            faceCount: 1,
-            faces: [
-                AnalyzeResponse.FaceDetail(
-                    faceRatio: 0.45,
-                    headPose: AnalyzeResponse.HeadPose(yaw: 12.3, pitch: -5.1)
-                )
-            ],
-            risk: AnalyzeResponse.RiskInfo(score: 0.72, level: "HIGH")
+            overallRisk: 72,
+            riskLabel: "높음",
+            lpipsRisk: 0.1,
+            clipRisk: 0.4,
+            arcRisk: 0.03
         ),
         onApplyFilter: {},
         onDismiss: {}

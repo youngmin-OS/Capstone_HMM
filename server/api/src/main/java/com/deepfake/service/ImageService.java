@@ -108,10 +108,9 @@ public class ImageService {
             AnalyzeResult result =
                     faceShieldClient.analyze(fileBytes, originalName);
 
-            if (result.getRisk() != null) {
-                image.setRiskScore(result.getRisk().getScore());
-                image.setRiskDescription(getRiskDescription(result.getRisk().getScore()));
-            }
+            double score = result.getOverallRisk() / 100.0;
+            image.setRiskScore(score);
+            image.setRiskDescription(getRiskDescription(score));
 
             image.setStatus(ImageStatus.COMPLETED);
             imageRepository.save(image);

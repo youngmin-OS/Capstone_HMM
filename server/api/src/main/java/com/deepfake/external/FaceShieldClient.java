@@ -23,7 +23,7 @@ public class FaceShieldClient {
 
     public AnalyzeResult analyze(byte[] fileBytes, String originalName) {
         ResponseEntity<AnalyzeResult> response = restTemplate.postForEntity(
-                aiServerUrl + "/analyze",
+                aiServerUrl + "/api/analyze",
                 buildMultipartRequest(fileBytes, originalName),
                 AnalyzeResult.class
         );
@@ -37,7 +37,7 @@ public class FaceShieldClient {
 
     public byte[] protect(byte[] fileBytes, String originalName) {
         ResponseEntity<byte[]> response = restTemplate.postForEntity(
-                aiServerUrl + "/protect",
+                aiServerUrl + "/api/protect",
                 buildMultipartRequest(fileBytes, originalName),
                 byte[].class
         );

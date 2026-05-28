@@ -74,14 +74,23 @@ struct ResultLoadingView: View {
 
     func applyFilter() {
         phase = .filtering
-        uploadImage(image: image) { result in
-            if let result = result {
-                filterResult = result
-                phase = .showResult
-            } else {
+        uploadImage(image: image) { uploadResult in
+            guard let uploadResult = uploadResult else {
                 isError = true
                 phase = .showRisk
+                return
+            }
+            
+            protectImage(imageId: uploadResult.imageId) { result in
+                if let result = result {
+                    filterResult = result
+                    phase = .showResult
+                } else {
+                    isError = true
+                    phase = .showRisk
+                }
             }
         }
     }
+    
 }

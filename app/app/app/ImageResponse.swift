@@ -6,22 +6,11 @@ struct ImageResponse: Codable {
 }
 
 struct AnalyzeResponse: Codable {
-    let faceCount: Int
-    let faces: [FaceDetail]
-    let risk: RiskInfo
-
-    struct FaceDetail: Codable {
-        let faceRatio: Double
-        let headPose: HeadPose
-    }
-    struct HeadPose: Codable {
-        let yaw: Double
-        let pitch: Double
-    }
-    struct RiskInfo: Codable {
-        let score: Double
-        let level: String
-    }
+    let overallRisk: Int
+    let riskLabel: String
+    let lpipsRisk: Double
+    let clipRisk: Double
+    let arcRisk: Double
 }
 
 func resizeImage(image: UIImage, maxWidth: CGFloat) -> UIImage {
@@ -36,7 +25,7 @@ func resizeImage(image: UIImage, maxWidth: CGFloat) -> UIImage {
 }
 
 func analyzeImage(image: UIImage, completion: @escaping (AnalyzeResponse?) -> Void) {
-    guard let url = URL(string: "https://80152zxv42wpx1-8080.proxy.runpod.net/api/images/analyze") else { return }
+    guard let url = URL(string: "http://localhost:8080/api/images/analyze") else { return }
 
     var request = URLRequest(url: url)
     request.httpMethod = "POST"
@@ -95,7 +84,7 @@ func analyzeImage(image: UIImage, completion: @escaping (AnalyzeResponse?) -> Vo
 }
 
 func uploadImage(image: UIImage, completion: @escaping (ImageResponse?) -> Void) {
-    guard let url = URL(string: "https://80152zxv42wpx1-8080.proxy.runpod.net/api/images/upload") else { return }
+    guard let url = URL(string: "http://localhost:8080/api/images/upload") else { return }
 
     var request = URLRequest(url: url)
     request.httpMethod = "POST"
@@ -149,11 +138,46 @@ func uploadImage(image: UIImage, completion: @escaping (ImageResponse?) -> Void)
         print("📦 응답 데이터: \(String(data: data, encoding: .utf8) ?? "파싱 불가")")
 
         if let decoded = try? JSONDecoder().decode(ImageResponse.self, from: data) {
-            let fixedUrl = decoded.resultUrl.replacingOccurrences(
-                of: "http://localhost:8080",
-                with: "https://80152zxv42wpx1-8080.proxy.runpod.net"
-            )
-            DispatchQueue.main.async { completion(ImageResponse(imageId: decoded.imageId, resultUrl: fixedUrl)) }
+            DispatchQueue.main.async { completion(ImageResponse(imageId: decoded.imageId, resultUrl: decoded.resultUrl)) }
+        } else {
+            DispatchQueue.main.async { completion(nil) }
+        }
+    }.resume()
+}
+
+func protectImage(imageId: Int, completion: @escaping (ImageResponse?) -> Void) {
+    guard let url = URL(string: "http://localhost:8080/api/images/\(imageId)/protect") else { return }
+
+    var request = URLRequest(url: url)
+    request.httpMethod = "POST"
+
+    if let token = UserDefaults.standard.string(forKey: "jwt_token") {
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+    }
+
+    URLSession.shared.dataTask(with: request) { data, response, error in
+        if let error = error {
+            print("❌ protect 오류: \(error.localizedDescription)")
+            DispatchQueue.main.async { completion(nil) }
+            return
+        }
+        if let httpResponse = response as? HTTPURLResponse {
+            print("📥 protect 응답 코드: \(httpResponse.statusCode)")
+        }
+        guard let data = data else {
+            DispatchQueue.main.async { completion(nil) }
+            return
+        }
+        print("📦 protect 응답: \(String(data: data, encoding: .utf8) ?? "파싱 불가")")
+
+        struct SpringImageResponse: Codable {
+            let id: Int
+            let resultPath: String?
+        }
+        if let decoded = try? JSONDecoder().decode(SpringImageResponse.self, from: data),
+           let resultPath = decoded.resultPath {
+            let response = ImageResponse(imageId: decoded.id, resultUrl: resultPath)
+            DispatchQueue.main.async { completion(response) }
         } else {
             DispatchQueue.main.async { completion(nil) }
         }

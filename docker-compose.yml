@@ -15,7 +15,7 @@ services:
 
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      AI_SERVER_URL: ${AI_SERVER_URL:-http://ai-server:8000}
+      AI_SERVER_URL: https://bdt8hqc0nm6gsp-8000.proxy.runpod.net
 
   ai-server:
     platform: linux/amd64
@@ -29,13 +29,13 @@ services:
       - "8000:8000"
 
     # NVIDIA GPU 지원 (RunPod / GPU 서버용)
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [gpu]
+    #deploy:
+    #  resources:
+     #   reservations:
+      #    devices:
+       #     - driver: nvidia
+        #      count: 1
+         #     capabilities: [gpu]
 
     environment:
       FACESHIELD_DIR: /app/model/faceshield
