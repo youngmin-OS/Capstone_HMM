@@ -15,6 +15,7 @@ services:
 
     environment:
       SPRING_PROFILES_ACTIVE: docker
+      AI_SERVER_URL: http://ai-server:8000
 
   ai-server:
     platform: linux/amd64

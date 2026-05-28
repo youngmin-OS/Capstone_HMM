@@ -36,7 +36,7 @@ func resizeImage(image: UIImage, maxWidth: CGFloat) -> UIImage {
 }
 
 func analyzeImage(image: UIImage, completion: @escaping (AnalyzeResponse?) -> Void) {
-    guard let url = URL(string: "http://172.16.8.189:8080/api/images/analyze") else { return }
+    guard let url = URL(string: "https://80152zxv42wpx1-8080.proxy.runpod.net/api/images/analyze") else { return }
 
     var request = URLRequest(url: url)
     request.httpMethod = "POST"
@@ -95,7 +95,7 @@ func analyzeImage(image: UIImage, completion: @escaping (AnalyzeResponse?) -> Vo
 }
 
 func uploadImage(image: UIImage, completion: @escaping (ImageResponse?) -> Void) {
-    guard let url = URL(string: "http://172.16.8.189:8080/api/images/upload") else { return }
+    guard let url = URL(string: "https://80152zxv42wpx1-8080.proxy.runpod.net/api/images/upload") else { return }
 
     var request = URLRequest(url: url)
     request.httpMethod = "POST"
@@ -151,7 +151,7 @@ func uploadImage(image: UIImage, completion: @escaping (ImageResponse?) -> Void)
         if let decoded = try? JSONDecoder().decode(ImageResponse.self, from: data) {
             let fixedUrl = decoded.resultUrl.replacingOccurrences(
                 of: "http://localhost:8080",
-                with: "http://172.16.8.189:8080"
+                with: "https://80152zxv42wpx1-8080.proxy.runpod.net"
             )
             DispatchQueue.main.async { completion(ImageResponse(imageId: decoded.imageId, resultUrl: fixedUrl)) }
         } else {
