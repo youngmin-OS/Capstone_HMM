@@ -89,7 +89,7 @@ struct SignupView: View {
     }
     
     func signup() {
-        guard let url = URL(string: "http://127.0.0.1:8080/api/users/signup") else {
+        guard let url = URL(string: "https://80152zxv42wpx1-8080.proxy.runpod.net/api/users/signup") else {
             print("URL 오류")
             return
         }
