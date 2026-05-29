@@ -7,7 +7,7 @@ FaceShield+ 보호 처리 통합 진입점 (eps14_inner3 최종본)
 
     # 1. 위험도 분석
     risk = predict_risk("/path/to/image.jpg")
-    # → {'overall_risk': 65, 'risk_label': '높음', 'lpips_risk': ...}
+    # → {'success': True, 'score': 65, 'level': 'MEDIUM', 'yaw': ..., 'pitch': ..., 'face_ratio': ...}
 
     # 2. 보호 처리 (다양한 입력 형식 지원)
     result = protect_image("/path/to/image.jpg")
@@ -80,6 +80,39 @@ from utils.dct import dct_pass_filter, make_dct_basis, blockfy, encode, decode, 
 
 # LPIPS (perceptual loss)
 import lpips
+
+# ============================================================
+# 위험도 분석 — capstone_pipeline의 진짜 위험도 분석 사용
+# ============================================================
+import sys as _sys
+try:
+    import sys as _sys2
+    _sys2.path.insert(0, '/workspace/capstone_pipeline/risk_analyzer')
+    import importlib.util as _ilu
+
+    _sdr_utils_spec = _ilu.spec_from_file_location(
+        "_sdr_utils",
+        "/workspace/capstone_pipeline/6DRepNet/sixdrepnet/utils.py"
+    )
+    _sdr_utils = _ilu.module_from_spec(_sdr_utils_spec)
+    _sdr_utils_spec.loader.exec_module(_sdr_utils)
+    import utils as _our_utils
+    for _name in dir(_sdr_utils):
+        if not _name.startswith('_') and not hasattr(_our_utils, _name):
+            setattr(_our_utils, _name, getattr(_sdr_utils, _name))
+
+    _spec = _ilu.spec_from_file_location(
+        "capstone_risk",
+        "/workspace/capstone_pipeline/risk_analyzer/pipeline.py"
+    )
+    _capstone_module = _ilu.module_from_spec(_spec)
+    _spec.loader.exec_module(_capstone_module)
+    _capstone_analyze_risk = _capstone_module.analyze_risk
+    print('[FaceShield+] capstone_pipeline loaded (via importlib + 6DRepNet utils patch)')
+except Exception as _e:
+    print(f'[FaceShield+] WARN: capstone_pipeline import 실패 ({_e})')
+    _capstone_analyze_risk = None
+
 
 
 # ============================================================
@@ -553,53 +586,10 @@ def _make_gaussian_kernel(kernel_size=5, sigma=1.0, channels=3, device='cuda'):
 # 6. 메인 API (백엔드용)
 # ============================================================
 def predict_risk(image_input):
-    """
-    이미지의 보호 위험도 분석.
-    Args:
-        image_input: 파일경로(str) / bytes / numpy / PIL / file-like
-    Returns:
-        dict {
-            'overall_risk': int (0~100),
-            'risk_label':   str ('낮음' / '보통' / '높음'),
-            'lpips_risk':   float,
-            'clip_risk':    float,
-            'arc_risk':     float,
-        }
-    """
-    try:
-        pil_img = _to_pil(image_input)
-        gt_face = _pil_to_tensor(pil_img, size=PGD_CONFIG["resize_shape"])
-        target = _predict_target(gt_face)
-        if target is None:
-            return {
-                'overall_risk': 50,
-                'risk_label':   '보통',
-                'lpips_risk':   0.0,
-                'clip_risk':    0.0,
-                'arc_risk':     0.0,
-                'error': 'CNN predictor 사용 불가',
-            }
-        
-        # 종합 위험도 (0~100 정규화)
-        overall = int(min(100, max(0,
-            (abs(target['lpips']) * 100 + target['clip_sim'] * 50 + abs(target['arc_sim']) * 100) / 2
-        )))
-        label = '낮음' if overall < 30 else ('보통' if overall < 60 else '높음')
-        
-        return {
-            'overall_risk': overall,
-            'risk_label':   label,
-            'lpips_risk':   target['lpips'],
-            'clip_risk':    target['clip_sim'],
-            'arc_risk':     target['arc_sim'],
-        }
-    except Exception as e:
-        import traceback
-        return {
-            'overall_risk': 50,
-            'risk_label':   '보통',
-            'error': f"{type(e).__name__}: {str(e)}\n{traceback.format_exc()}",
-        }
+    """진짜 위험도 분석 — capstone_pipeline (YOLO + 6DRepNet) 호출"""
+    if _capstone_analyze_risk is None:
+        return {"success": False, "error": "capstone_pipeline 사용 불가"}
+    return _capstone_analyze_risk(image_input)
 
 
 def protect_image(image_input):
@@ -653,10 +643,11 @@ if __name__ == "__main__":
     # 1. 위험도 분석
     print("=== Step 1: 위험도 분석 ===")
     risk = predict_risk(test_path)
-    print(f"종합 위험도: {risk.get('overall_risk', '?')}/100 ({risk.get('risk_label', '?')})")
-    if 'lpips_risk' in risk:
-        print(f"세부: LPIPS={risk['lpips_risk']:.4f}, "
-              f"CLIP={risk['clip_risk']:.4f}, Arc={risk['arc_risk']:.4f}")
+    if risk.get('success'):
+        print(f"위험도 점수: {risk.get('score')}/100 (level: {risk.get('level')})")
+        print(f"세부: yaw={risk.get('yaw'):.2f}, pitch={risk.get('pitch'):.2f}, face_ratio={risk.get('face_ratio'):.4f}")
+    else:
+        print(f"위험도 분석 실패: {risk.get('error')}")
     
     # 2. 보호 처리
     print("\n=== Step 2: 보호 처리 ===")
