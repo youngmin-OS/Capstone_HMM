@@ -1,18 +1,18 @@
 spring:
   datasource:
-    url: jdbc:h2:mem:testdb
-    driver-class-name: org.h2.Driver
-    username: sa
-    password:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/deepfake}
+    driver-class-name: org.postgresql.Driver
+    username: ${SPRING_DATASOURCE_USERNAME:deepfake}
+    password: ${SPRING_DATASOURCE_PASSWORD:deepfake}
 
   jpa:
     hibernate:
-      ddl-auto: create
+      ddl-auto: update
     show-sql: true
 
   h2:
     console:
-      enabled: true
+      enabled: false
 
   servlet:
     multipart:
@@ -28,3 +28,10 @@ ai:
     url: ${ANALYZE_URL:http://localhost:8000}
   protect:
     url: ${PROTECT_URL:https://kmlvwtyfyf55b9-8000.proxy.runpod.net}
+
+app:
+  base-url: ${APP_BASE_URL:http://localhost:8080}
+
+jwt:
+  secret: ${JWT_SECRET:dev-only-change-this-secret-key-32b}
+  expiration-ms: ${JWT_EXPIRATION_MS:3600000}

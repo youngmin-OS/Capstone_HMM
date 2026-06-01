@@ -11,12 +11,39 @@ services:
       - "8080:8080"
 
     depends_on:
-      - ai-server
+      ai-server:
+        condition: service_started
+      postgres:
+        condition: service_healthy
 
     environment:
       SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/deepfake
+      SPRING_DATASOURCE_USERNAME: deepfake
+      SPRING_DATASOURCE_PASSWORD: deepfake
       ANALYZE_URL: http://ai-server:8000
       PROTECT_URL: https://kmlvwtyfyf55b9-8000.proxy.runpod.net
+
+  postgres:
+    image: postgres:16
+    container_name: deepfake-postgres
+
+    ports:
+      - "5432:5432"
+
+    environment:
+      POSTGRES_DB: deepfake
+      POSTGRES_USER: deepfake
+      POSTGRES_PASSWORD: deepfake
+
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U deepfake -d deepfake"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
   ai-server:
     platform: linux/amd64
@@ -55,3 +82,6 @@ services:
       - ./model/faceshield/models:/app/model/faceshield/models
       # HuggingFace 모델 캐시 (SD 1.5, IP-Adapter 등)
       - ./model/hf_cache:/app/model/hf_cache
+
+volumes:
+  postgres-data:
