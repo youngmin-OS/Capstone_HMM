@@ -25,7 +25,7 @@ func resizeImage(image: UIImage, maxWidth: CGFloat) -> UIImage {
 }
 
 func analyzeImage(image: UIImage, completion: @escaping (AnalyzeResponse?) -> Void) {
-    guard let url = URL(string: "http://localhost:8080/api/images/analyze") else { return }
+    guard let url = APIConfig.url("/api/images/analyze") else { return }
 
     var request = URLRequest(url: url)
     request.httpMethod = "POST"
@@ -84,7 +84,7 @@ func analyzeImage(image: UIImage, completion: @escaping (AnalyzeResponse?) -> Vo
 }
 
 func uploadImage(image: UIImage, completion: @escaping (ImageResponse?) -> Void) {
-    guard let url = URL(string: "http://localhost:8080/api/images/upload") else { return }
+    guard let url = APIConfig.url("/api/images/upload") else { return }
 
     var request = URLRequest(url: url)
     request.httpMethod = "POST"
@@ -146,7 +146,7 @@ func uploadImage(image: UIImage, completion: @escaping (ImageResponse?) -> Void)
 }
 
 func protectImage(imageId: Int, completion: @escaping (ImageResponse?) -> Void) {
-    guard let url = URL(string: "http://localhost:8080/api/images/\(imageId)/protect") else { return }
+    guard let url = APIConfig.url("/api/images/\(imageId)/protect") else { return }
 
     var request = URLRequest(url: url)
     request.httpMethod = "POST"
