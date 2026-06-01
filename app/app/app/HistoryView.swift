@@ -286,6 +286,24 @@ struct HistoryDetailView: View {
                     }
                 }
                 .padding(.horizontal)
+                
+                Button {
+                    if let img = processedImage {
+                        KakaoShare.share(imageURL: nil, localImage: img)
+                    }
+                } label: {
+                    HStack {
+                        Image(systemName: "message.fill")
+                        Text("카카오톡 공유")
+                    }
+                    .font(.subheadline.bold())
+                    .foregroundColor(Color(red: 0.18, green: 0.18, blue: 0.18))
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 12)
+                    .background(Color(red: 1.0, green: 0.90, blue: 0.0))
+                    .cornerRadius(10)
+                }
+                .padding(.horizontal)
 
                 // 삭제 버튼
                 Button { showDeleteAlert = true } label: {

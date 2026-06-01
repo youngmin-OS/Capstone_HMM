@@ -102,6 +102,21 @@ struct ResultView: View {
                 }
                 .padding(.horizontal)
                 .padding(.bottom, 10)
+                Button {
+                    shareToKakao()
+                } label: {
+                    HStack {
+                        Image(systemName: "message.fill")
+                        Text("카카오톡 공유")
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color(red: 1.0, green: 0.90, blue: 0.0)) // 카카오 노란색
+                    .foregroundColor(Color(red: 0.18, green: 0.18, blue: 0.18))
+                    .cornerRadius(12)
+                }
+                .padding(.horizontal)
+                .padding(.bottom, 10)
             }
         }
         .sheet(isPresented: $showShare) {
@@ -134,6 +149,16 @@ struct ResultView: View {
             }
             DispatchQueue.global(qos: .background).async {
                 HistoryStore.shared.add(processed: img)
+            }
+        }.resume()
+    }
+    
+    func shareToKakao() {
+        guard let url = URL(string: result.resultUrl) else { return }
+        URLSession.shared.dataTask(with: url) { data, _, _ in
+            guard let data = data, let img = UIImage(data: data) else { return }
+            DispatchQueue.main.async {
+                KakaoShare.share(imageURL: result.resultUrl, localImage: img)
             }
         }.resume()
     }
