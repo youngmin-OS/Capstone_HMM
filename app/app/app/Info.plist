@@ -13,3 +13,23 @@
 	</dict>
 </dict>
 </plist>
+
+<key>LSApplicationQueriesSchemes</key>
+<array>
+    <string>instagram</string>
+    <string>instagram-stories</string>
+    <string>kakaokompassauth</string>
+    <string>storykompassauth</string>
+    <string>kakaolink</string>
+</array>
+
+<!-- 카카오 URL Scheme 등록 -->
+<key>CFBundleURLTypes</key>
+<array>
+    <dict>
+        <key>CFBundleURLSchemes</key>
+        <array>
+            <string>kakao0fcc49c1b5b1b6e41b7be7b0d95234c3</string>
+        </array>
+    </dict>
+</array>
