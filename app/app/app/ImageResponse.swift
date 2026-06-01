@@ -7,7 +7,7 @@ struct ImageResponse: Codable {
 
 struct AnalyzeResponse: Codable {
     let overallRisk: Int
-    let riskLabel: String
+    let riskLabel: String?
     let lpipsRisk: Double
     let clipRisk: Double
     let arcRisk: Double

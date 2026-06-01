@@ -50,24 +50,24 @@ def analyze_image(contents: bytes) -> dict:
 
     if detection is None:
         return {
-            "face_count": 0,
-            "faces": [],
-            "risk": {"score": 0.0, "level": "LOW"},
+            "overall_risk": 0,
+            "risk_label": "LOW",
+            "lpips_risk": 0.0,
+            "clip_risk": 0.0,
+            "arc_risk": 0.0,
         }
 
     face_crop, face_ratio = detection
     pose = get_head_pose(face_crop)
 
-    yaw   = round(float(pose[0]), 2) if pose else 0.0
-    pitch = round(float(pose[1]), 2) if pose else 0.0
+    yaw = round(float(pose[0]), 2) if pose else 0.0
+
+    risk = _calculate_risk(float(face_ratio), yaw)
 
     return {
-        "face_count": 1,
-        "faces": [
-            {
-                "face_ratio": round(float(face_ratio), 4),
-                "head_pose": {"yaw": yaw, "pitch": pitch},
-            }
-        ],
-        "risk": _calculate_risk(float(face_ratio), yaw),
+        "overall_risk": int(risk["score"] * 100),
+        "risk_label": risk["level"],
+        "lpips_risk": 0.0,
+        "clip_risk": 0.0,
+        "arc_risk": 0.0,
     }

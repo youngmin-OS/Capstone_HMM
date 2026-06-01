@@ -37,6 +37,9 @@ COPY server/ai_server/app /app/app
 
 RUN mkdir -p uploads protected model/faceshield/models
 
+# 6DRepNet 모델 빌드 시점에 미리 다운로드 (컨테이너 시작 시 다운로드 방지)
+RUN python -c "from sixdrepnet import SixDRepNet; SixDRepNet(gpu_id=-1)" 2>&1 | tail -5
+
 # Risk Analyzer
 ENV YOLO_WEIGHTS_PATH=/app/model/weights/yolov8n-face.pt
 ENV PROJECT_ROOT=/app

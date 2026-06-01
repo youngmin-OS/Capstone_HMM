@@ -15,7 +15,8 @@ services:
 
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      AI_SERVER_URL: https://bdt8hqc0nm6gsp-8000.proxy.runpod.net
+      ANALYZE_URL: http://ai-server:8000
+      PROTECT_URL: https://kmlvwtyfyf55b9-8000.proxy.runpod.net
 
   ai-server:
     platform: linux/amd64

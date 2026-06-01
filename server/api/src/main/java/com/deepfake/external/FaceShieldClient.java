@@ -12,8 +12,11 @@ import org.springframework.web.client.RestTemplate;
 @Component
 public class FaceShieldClient {
 
-    @Value("${ai.server.url}")
-    private String aiServerUrl;
+    @Value("${ai.analyze.url}")
+    private String analyzeUrl;
+
+    @Value("${ai.protect.url}")
+    private String protectUrl;
 
     private final RestTemplate restTemplate;
 
@@ -23,7 +26,7 @@ public class FaceShieldClient {
 
     public AnalyzeResult analyze(byte[] fileBytes, String originalName) {
         ResponseEntity<AnalyzeResult> response = restTemplate.postForEntity(
-                aiServerUrl + "/api/analyze",
+                analyzeUrl + "/analyze",
                 buildMultipartRequest(fileBytes, originalName),
                 AnalyzeResult.class
         );
@@ -37,7 +40,7 @@ public class FaceShieldClient {
 
     public byte[] protect(byte[] fileBytes, String originalName) {
         ResponseEntity<byte[]> response = restTemplate.postForEntity(
-                aiServerUrl + "/api/protect",
+                protectUrl + "/api/protect",
                 buildMultipartRequest(fileBytes, originalName),
                 byte[].class
         );
