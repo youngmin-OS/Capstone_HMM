@@ -94,7 +94,7 @@ struct LoginView: View {
     }
     
     func login() {
-        guard let url = URL(string: "http://localhost:8080/api/users/login") else { return }
+        guard let url = APIConfig.url("/api/users/login") else { return }
         
         var request = URLRequest(url: url)
         request.httpMethod = "POST"

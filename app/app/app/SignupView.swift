@@ -89,7 +89,7 @@ struct SignupView: View {
     }
     
     func signup() {
-        guard let url = URL(string: "http://localhost:8080/api/users/signup") else {
+        guard let url = APIConfig.url("/api/users/signup") else {
             print("URL 오류")
             return
         }
