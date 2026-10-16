@@ -32,7 +32,7 @@ deepfake-project/
 | Frontend | Swift |
 | Backend | Java, Spring Boot |
 | AI | Python, FastAPI, PyTorch |
-| DB | MySQL |
+| DB | PostgreSQL |
 | Infra | AWS (EC2, S3), Docker |
 
 ---
